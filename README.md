@@ -8,17 +8,17 @@ Exploring the behavior of 2d Lennard-Jones systems under different conditions wi
 * the calculation of the radial distribution function
 * routines for running individual and ensembles of MD simulations, sweeping parameter space and automatically including all available data sets into plots
 
-**TOUTES LES FONCTIONS UTILES SONT DANS *library.py*, à importer avec : **
+**TOUTES LES FONCTIONS UTILES SONT DANS *library.py*, à importer avec :**
 
 `from library.py import *`
 
 
 # CE QUI RESTE A FAIRE 
 
-*voir la section "issues"*
- > Tout se passe sur le jupyter main 
- > On crée la routine de base pour un kt
- > On fait tourner cette routine pour plusieurs kt
+*Voir la section "issues"*
+ > Tout se passe sur le jupyter main. 
+ > On crée la routine de base pour un kt.
+ > On fait tourner cette routine pour plusieurs kt.
  > A chaque étape, on étudie : 
 
 * la densité locale
@@ -27,4 +27,4 @@ Exploring the behavior of 2d Lennard-Jones systems under different conditions wi
 * la compressibilité
 * la diffusion 
 
->On observe la transition de phase et on conclut
+>On observe la transition de phase et on conclut.
