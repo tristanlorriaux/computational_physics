@@ -8,7 +8,7 @@ Exploring the behavior of 2d Lennard-Jones systems under different conditions wi
 * the calculation of the radial distribution function
 * routines for running individual and ensembles of MD simulations, sweeping parameter space and automatically including all available data sets into plots
 
-*TOUTES LES FONCTIONS UTILES SONT DANS **library.py**, à importer avec : *
+**TOUTES LES FONCTIONS UTILES SONT DANS *library.py*, à importer avec : **
 
 `from library.py import *`
 
