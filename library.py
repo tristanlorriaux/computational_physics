@@ -20,81 +20,81 @@ reload(MD)
 #######A routine for generating or extending individual NVT-MD trajectories for a LJ systems########
 
 
-def Generate_LJ_NVT_MolecularDynamics_Trajectory(d, m, LBox, kT, run_time,
+def Generate_LJ_NVT_MolecularDynamics_Trajectory(d,m,LBox,kT,run_time,
                                                  starting_configuration=[],
-                                                 time_step=0.01,
+                                                 time_step = 0.01,
                                                  number_of_time_steps_between_stored_configurations=100,
                                                  number_of_time_steps_between_velocity_resets=100,
                                                  debug=False):
     """
-    generates a NVT MD simulations of a LJ system with sigma=epsilon=1
+    generates a NVT MD simulations of a LJ system with sigma=epsilon=1  
         - where the particle masses are specified in the array m
         - so that NParticles = m.size
         - in a volume V=(LBox,LBox) at a specified temperature kT
-        - with a time step of time_step tau
+        - with a time step of time_step tau 
           where the LJ unit of time is calculated as a function of m[-1], i.e. the mass of the LAST particle
-        - runs are either started from
+        - runs are either started from 
                 a specified starting configuration [t,x,y,vx,vy] or
                 initialized with zero velocities and particles placed on a square grid
-        - the simulations are thermostated by redrawing random velocities from the
+        - the simulations are thermostated by redrawing random velocities from the 
           Maxwell-Boltzmann distribution number_of_time_steps_between_velocity_resets time steps
-        - the function returns
-                trajectory lists t_tr, x_tr, y_tr, vx_tr, vy_tr, uPot_tr, uKin_tr, pPot_tr, pKin_tr
+        - the function returns 
+                trajectory lists t_tr, x_tr, y_tr, vx_tr, vy_tr, uPot_tr, uKin_tr, pPot_tr, pKin_tr 
                      of sampling times and sampled coordinates, velocities and energies and pressures
                 a final configuration [t,x,y,vx,vy] from which the run can be restarted
-                while the energies and pressures are recorded at every time step, configurations
+                while the energies and pressures are recorded at every time step, configurations 
                      and velocities are stored at a time interval of time_between_stored_configurations
-
+                    
     """
 
     NParticles = m.size
     sigma = 1
     epsilon = 1
-    # unit of time
-    tau = sigma * np.sqrt(m[-1] / epsilon)
+    #unit of time
+    tau = sigma*np.sqrt(m[-1]/epsilon)      
 
     # define the length of the trajectory
-    number_of_timesteps = int(np.round(run_time / time_step))
+    number_of_timesteps = int(np.round(run_time/time_step))
 
-    # starting configuration
-    if starting_configuration != []:
-        [t, x, y, vx, vy] = starting_configuration
+    #starting configuration
+    if starting_configuration!=[]:
+        [t,x,y,vx,vy] = starting_configuration
     else:
         # default initial state
-        x, y = MD.GridPositionsIn2d(LBox, LBox, NParticles)
-        vx = MD.RandomVelocities(m, kT)
-        vy = MD.RandomVelocities(m, kT)
+        x,y = MD.GridPositionsIn2d(LBox,LBox,NParticles)
+        vx = MD.RandomVelocities(m,kT)
+        vy = MD.RandomVelocities(m,kT)
         t = 0
         if debug:
             print("No starting configuration")
 
-    # initialize Trajectory
+    #initialize Trajectory
     t_tr = []
     x_tr = []
     vx_tr = []
     y_tr = []
     vy_tr = []
 
-    fx, fy = MD.LJ_forces_as_a_function_of_positions(d, epsilon, sigma, LBox, (x, y))
+    fx,fy = MD.LJ_forces_as_a_function_of_positions(d,epsilon,sigma,LBox,(x,y))
     # force for initial configuration needed for first time step
 
     for timestep in range(number_of_timesteps):
-        (x, y), (vx, vy) = MD.VelocityVerletTimeStepPartOne(m, (x, y), (vx, vy), (fx, fy), time_step)
-        fx, fy = MD.LJ_forces_as_a_function_of_positions(2, epsilon, sigma, LBox, (x, y))
-        (x, y), (vx, vy) = MD.VelocityVerletTimeStepPartTwo(m, (x, y), (vx, vy), (fx, fy), time_step)
+        (x,y),(vx,vy) = MD.VelocityVerletTimeStepPartOne(m,(x,y),(vx,vy),(fx,fy),time_step)
+        fx,fy = MD.LJ_forces_as_a_function_of_positions(2,epsilon,sigma,LBox,(x,y))
+        (x,y),(vx,vy) = MD.VelocityVerletTimeStepPartTwo(m,(x,y),(vx,vy),(fx,fy),time_step)
         t += time_step
-
+        
         t_tr.append(t)
         x_tr.append(x)
         vx_tr.append(vx)
         y_tr.append(y)
         vy_tr.append(vy)
-
+    
         # thermostat: reinitialise velocities to control temperature
-        #        if np.mod( timestep*time_step, time_between_velocity_resets ) == 0.0 and timestep>1:
-        if timestep % number_of_time_steps_between_velocity_resets == 0 and timestep > 1:
-            vx = MD.RandomVelocities(m, kT)
-            vy = MD.RandomVelocities(m, kT)
+#        if np.mod( timestep*time_step, time_between_velocity_resets ) == 0.0 and timestep>1:
+        if timestep%number_of_time_steps_between_velocity_resets == 0 and timestep>1:
+            vx = MD.RandomVelocities(m,kT)
+            vy = MD.RandomVelocities(m,kT)
 
     # convert trajectory lists to arrays to simplify the data analysis
     t_tr = np.array(t_tr)
@@ -103,25 +103,113 @@ def Generate_LJ_NVT_MolecularDynamics_Trajectory(d, m, LBox, kT, run_time,
     y_tr = np.array(y_tr)
     vy_tr = np.array(vy_tr)
 
-    # analyse results
-    uPot_tr = MD.LJ_energy_as_a_function_of_positions(d, epsilon, sigma, LBox, (x_tr, y_tr))
-    uKin_tr = MD.TotalKineticEnergy(m, vx_tr) + MD.TotalKineticEnergy(m, vy_tr)
-    pPot_tr = MD.LJ_virial_pressure_as_a_function_of_positions(d, epsilon, sigma, LBox, (x_tr, y_tr))
-    pKin_tr = MD.KineticPressure_as_a_function_of_velocities(d, LBox, m, (vx_tr, vy_tr))
-    pHyper_tr = MD.LJ_hyper_virial_as_a_function_of_positions(d, epsilon, sigma, LBox, (x_tr, y_tr))
-
+    # analyse results 
+    uPot_tr = MD.LJ_energy_as_a_function_of_positions(d,epsilon,sigma,LBox,(x_tr,y_tr))
+    uKin_tr = MD.TotalKineticEnergy(m,vx_tr) + MD.TotalKineticEnergy(m,vy_tr)
+    pPot_tr = MD.LJ_virial_pressure_as_a_function_of_positions(d,epsilon,sigma,LBox,(x_tr,y_tr)) 
+    pKin_tr = MD.KineticPressure_as_a_function_of_velocities(d,LBox,m,(vx_tr,vy_tr))
+    
     # reduce the number of stored configurations and velocities
-    #    skip = int(time_between_stored_configurations / delta_t)
+#    skip = int(time_between_stored_configurations / delta_t)
     skip = number_of_time_steps_between_stored_configurations
     x_tr = x_tr[::skip]
     y_tr = y_tr[::skip]
     vx_tr = vx_tr[::skip]
-    vy_tr = vy_tr[::skip]
+    vy_tr = vy_tr[::skip]    
     # note that t_tr is not compressed as it contains the times corresponding to the stored energies and pressures
-    # as a consequence a corresponding skipping operation needs to be performed, when configurations are plotted
+    # as a consequence a corresponding skipping operation needs to be performed, when configurations are plotted 
     # as a function of time
+    
+    return t_tr, x_tr, y_tr, vx_tr, vy_tr, uPot_tr, uKin_tr, pPot_tr, pKin_tr, [t,x,y,vx,vy]
 
-    return t_tr, x_tr, y_tr, vx_tr, vy_tr, uPot_tr, uKin_tr, pPot_tr, pKin_tr, pHyper_tr, [t, x, y, vx, vy]
+
+def Generate_Ensemble_of_LJ_NVT_MolecularDynamics_Trajectories(d,m,LBox,kT,NTrajectories,run_time,
+                                                               list_of_starting_configurations=[],
+                                                               time_step=0.01,
+                                                               number_of_time_steps_between_stored_configurations=100,
+                                                               number_of_time_steps_between_velocity_resets=100,
+                                                               debug=False):
+    """
+    uses Generate_LJ_NVT_MolecularDynamics_Trajectory to
+
+    generate an ensemble of NTrajectories NVT MD simulations of a LJ system with sigma=epsilon=1  
+        - where the particle masses are specified in the array m
+        - so that NParticles = m.size
+        - in a volume V=(LBox,LBox) at a specified temperature kT
+        - with a time step of time_step tau 
+          where the LJ unit of time is calculated as a function of m[-1], i.e. the mass of the LAST particle
+        - runs are either started from 
+                a list of specified starting configuration [[t,x,y,vx,vy], ...] or
+                initialized with zero velocities and particles placed on a square grid
+        - the simulations are thermostated by redrawing random velocities from the 
+          Maxwell-Boltzmann distribution at intervals of time_between_velocity_resets
+        - the function returns 
+                trajectory ensemble lists t_tr_ens, x_tr_ens, y_tr_ens, vx_tr_ens, vy_tr_ens, uPot_tr_ens, uKin_tr_ens, pPot_tr_ens, pKin_tr_ens 
+                     of sampling times and sampled coordinates, velocities and energies and pressures
+                a list of final configurations [[t,x,y,vx,vy], ...] from which the runs can be restarted
+                while the energies and pressures are recorded at every time step, configurations 
+                     and velocities are stored at a time interval of time_between_stored_configurations      
+    """
+    # initialize lists to collect ENSEMBLES of trajectories
+    t_tr_ens = []
+    x_tr_ens = []
+    vx_tr_ens = []
+    y_tr_ens = []
+    vy_tr_ens = []
+    uKin_tr_ens = []
+    uPot_tr_ens = []
+    pKin_tr_ens = []
+    pPot_tr_ens = []
+    
+    # convert empty list into lists of NTrajectories empty lists, 
+    # which can then by passed on to the simulation routine
+    if list_of_starting_configurations==[]:
+        local_list_of_starting_configurations=[]
+        if debug:
+            print("No list of starting configurations")
+        for n in range(NTrajectories): 
+            local_list_of_starting_configurations.append([])
+    else:
+        local_list_of_starting_configurations = list_of_starting_configurations
+
+    for n in range(NTrajectories):
+        if debug:
+            print('.', end='', flush=True)
+        (t_tr, x_tr, y_tr, vx_tr, vy_tr, 
+         uPot_tr, uKin_tr, pPot_tr, pKin_tr, 
+         local_list_of_starting_configurations[n]
+        ) = Generate_LJ_NVT_MolecularDynamics_Trajectory(d,m,LBox,kT,run_time,
+                                                         local_list_of_starting_configurations[n],
+                                                         time_step=time_step,
+                                                         number_of_time_steps_between_stored_configurations=number_of_time_steps_between_stored_configurations,
+                                                         number_of_time_steps_between_velocity_resets=number_of_time_steps_between_velocity_resets)
+
+        # append trajectories to corresponding ensemble lists
+        t_tr_ens.append(t_tr)
+        x_tr_ens.append(x_tr)
+        vx_tr_ens.append(vx_tr)
+        y_tr_ens.append(y_tr)
+        vy_tr_ens.append(vy_tr)
+        uKin_tr_ens.append(uKin_tr)
+        uPot_tr_ens.append(uPot_tr)
+        pKin_tr_ens.append(pKin_tr)
+        pPot_tr_ens.append(pPot_tr)
+    
+    if debug:
+        print("")
+    t_tr_ens = np.array(t_tr_ens)
+    x_tr_ens = np.array(x_tr_ens)
+    y_tr_ens = np.array(y_tr_ens)
+    vx_tr_ens = np.array(vx_tr_ens)
+    vy_tr_ens = np.array(vy_tr_ens)
+    uKin_tr_ens = np.array(uKin_tr_ens)
+    uPot_tr_ens = np.array(uPot_tr_ens)
+    pKin_tr_ens = np.array(pKin_tr_ens)
+    pPot_tr_ens = np.array(pPot_tr_ens)
+    
+    return (t_tr_ens, x_tr_ens, y_tr_ens, vx_tr_ens, vy_tr_ens, 
+            uPot_tr_ens, uKin_tr_ens, pPot_tr_ens, pKin_tr_ens, 
+            local_list_of_starting_configurations)
 
 #######Getting compressibilty from pressure fluctuations########
 
@@ -157,6 +245,8 @@ def Compressibility_from_pressure_fluctuations_in_NVT(d, m, NParticles, LBox, kT
         # data for an ensemble of trajectories
         NTrajectories = beta_T.size
         return np.mean(beta_T), np.std(beta_T) / np.sqrt(NTrajectories)
+
+
 
 ######################################
 ############## DENSITY ###############
@@ -207,16 +297,13 @@ def SortParticlesIntoGrid(NCells, x, y, xBox, yBox, x_pbc=False, y_pbc=False, de
 def CellOccupancyV1(NParticles,NCells, xx, yy, xBox, yBox, x_pbc=False, y_pbc=False, debug=False):
     '''
         Returns the occupancy of NCells x NCells cells
-
         xBox = (xmin,xmax) denotes the simulation box
         xBox = LBox corresponds to a box of (0,LBox)
-
         if x_pbc==True
             particles are sorted according to their folded positions,
             where the box position is randomly shifted to break Gallilein invariance
         else:
             particles inside the box are sorted according to their absolute positions
-
         the same rules apply in y-direction
     '''
 
@@ -277,18 +364,14 @@ def CellOccupancy_vec(NCells, xx, yy, xBox, yBox, x_pbc=False, y_pbc=False, debu
 def CellOccupancy(NCells, xx, yy, xBox, yBox, x_pbc=False, y_pbc=False, debug=False):
     '''
         Returns the occupancy of NCells x NCells cells
-
         xBox = (xmin,xmax) denotes the simulation box
         xBox = LBox corresponds to a box of (0,LBox)
-
         if x_pbc==True
             particles are sorted according to their folded positions,
             where the box position is randomly shifted to break Gallilein invariance
         else:
             particles inside the box are sorted according to their absolute positions
-
         the same rules apply in y-direction
-
         The function can be applied to individual conformations, trajectories and ensembles
             and returns correspondingly shaped arrays
     '''
@@ -359,39 +442,41 @@ def CellOccupancy(NCells, xx, yy, xBox, yBox, x_pbc=False, y_pbc=False, debug=Fa
 
 ####### Getting the MSD of a particule #######
 
-def MeanSquareDisplacements(t_tr, x_tr):
+def MeanSquareDisplacements(t_tr,x_tr):
     """
-    Returns the particle and time average mean-square displacement < (x(t)-x(0))**2 >
+    Returns the particle and time average mean-square displacement < (x(t)-x(0))**2 > 
     in one Cartesian direction for a trajectory of x- or y-positions
     """
-
+    
     NParticles = x_tr.shape[-1]
-    delta_t_steps_max = t_tr.shape[-1]
+    length_of_x_tr = x_tr.shape[-2]
+    length_of_t_tr = t_tr.shape[-1]
     local_x_tr = np.copy(x_tr)
 
-    if x_tr.ndim > 2:
+    if x_tr.ndim>2:
         # data for an ensemble of trajectories
         NTrajectories = x_tr.shape[-3]
-        local_x_tr = local_x_tr.transpose(1, 0, 2)
+        local_x_tr = local_x_tr.transpose(1,0,2)
         # so that the time axis is always the first axis (or rather axis=0)
     else:
         NTrajectories = 1
-
+        
     msd = []
     delta_t = []
-
-    for n in range(1, delta_t_steps_max // 2):
-        if t_tr.ndim == 1:
+    
+    for n in range(1,length_of_x_tr//2):
+        
+        n_t = n*length_of_t_tr//length_of_x_tr  # because sometimes configurations are not stored for each time step
+        if t_tr.ndim==1:
             # data for one trajectories
-            delta_t.append(t_tr[n] - t_tr[0])
-        elif t_tr.ndim == 2:
+            delta_t.append(t_tr[n_t]-t_tr[0])
+        elif t_tr.ndim==2:
             # data for an ensemble of trajectories
-            delta_t.append(t_tr[0, n] - t_tr[0, 0])
-        delta_x2 = (local_x_tr - np.roll(local_x_tr, -n, axis=0)) ** 2
-        msd.append(np.mean(delta_x2[:delta_t_steps_max - n]))
-
+            delta_t.append(t_tr[0,n_t]-t_tr[0,0])
+        delta_x2 = ( local_x_tr - np.roll(local_x_tr,-n,axis=0) )**2
+        msd.append(np.mean(delta_x2[:length_of_x_tr-n]))
+        
     return np.array(delta_t), np.array(msd)
-
 
 ######################################
 ##### Pair correlation function ######
@@ -519,24 +604,19 @@ def Number_of_nearest_neighbors(d, LBox, pos, r_max, debug=False):
 def U_LJ(d, epsilon, sigma, distance_vector):
     """
     Lennard-Jones potential energy in d dimensions
-
     d is the embedding dimension. Needed to distinguish the case of 2 1d distance vectors from 1 2d distance vector.
-
     epsilon is the energy scale of the LJ potential and can be
         a scalar for a single interaction or if all interactions have the same epsilon
         an array of the length of the array of distance vectors
-
     sigma is the interaction range and can be
         a scalar for a single interaction or if all interactions have the same epsilon
         an array of the length of the array of distance vectors
-
     distance_vector are the instanteneous distances
         in d = 1 distance_vector = delta_x
         in d>1 distance_vector has to be of the form distance_vector = (delta_x,delta_x) or distance_vector = [delta_x,delta_x]
         where delta_x and delta_y can be
             a scalar for a single interaction
             an array for several interactions to be evaluated simultaneously
-
     The function returns 4*epsilon*((sigma/r)**(-12)-(sigma/r)**-6) where u has the same format as delta_x
     """
     eps = np.array(epsilon)
@@ -554,24 +634,19 @@ def U_LJ(d, epsilon, sigma, distance_vector):
 def f_LJ(d, epsilon, sigma, distance_vector, debug=False):
     """
     Lennard-Jones force in d dimensions
-
     d is the embedding dimension. Needed to distinguish the case of 2 1d distance vectors from 1 2d distance vector.
-
     epsilon is the energy scale of the LJ potential and can be
         a scalar for a single interaction or if all interactions have the same epsilon
         an array of the length of the array of distance vectors
-
     sigma is the interaction range and can be
         a scalar for a single interaction or if all interactions have the same epsilon
         an array of the length of the array of distance vectors
-
     distance_vector are the instanteneous distances
         in d = 1 distance_vector = delta_x
         in d>1 distance_vector has to be of the form distance_vector = (delta_x,delta_x) or distance_vector = [delta_x,delta_x]
         where delta_x and delta_y can be
             a scalar for a single interaction
             an array for several interactions to be evaluated simultaneously
-
     The function returns -24*epsilon*(2*(sigma/r)**(-12)-(sigma/r)**-6) * distance_vector/r**2
         where f has the same format as distance_vector
         and r = |distance_vector|
