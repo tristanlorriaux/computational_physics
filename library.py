@@ -108,6 +108,7 @@ def Generate_LJ_NVT_MolecularDynamics_Trajectory(d,m,LBox,kT,run_time,
     uKin_tr = MD.TotalKineticEnergy(m,vx_tr) + MD.TotalKineticEnergy(m,vy_tr)
     pPot_tr = MD.LJ_virial_pressure_as_a_function_of_positions(d,epsilon,sigma,LBox,(x_tr,y_tr)) 
     pKin_tr = MD.KineticPressure_as_a_function_of_velocities(d,LBox,m,(vx_tr,vy_tr))
+    pHyper_tr = MD.LJ_virial_pressure_as_a_function_of_positions(d,epsilon,sigma,LBox,(x_tr,y_tr))
     
     # reduce the number of stored configurations and velocities
 #    skip = int(time_between_stored_configurations / delta_t)
@@ -120,7 +121,7 @@ def Generate_LJ_NVT_MolecularDynamics_Trajectory(d,m,LBox,kT,run_time,
     # as a consequence a corresponding skipping operation needs to be performed, when configurations are plotted 
     # as a function of time
     
-    return t_tr, x_tr, y_tr, vx_tr, vy_tr, uPot_tr, uKin_tr, pPot_tr, pKin_tr, [t,x,y,vx,vy]
+    return t_tr, x_tr, y_tr, vx_tr, vy_tr, uPot_tr, uKin_tr, pPot_tr, pKin_tr, pHyper_tr, [t,x,y,vx,vy]
 
 
 def Generate_Ensemble_of_LJ_NVT_MolecularDynamics_Trajectories(d,m,LBox,kT,NTrajectories,run_time,
@@ -160,6 +161,7 @@ def Generate_Ensemble_of_LJ_NVT_MolecularDynamics_Trajectories(d,m,LBox,kT,NTraj
     uPot_tr_ens = []
     pKin_tr_ens = []
     pPot_tr_ens = []
+    pHyper_tr_ens = []
     
     # convert empty list into lists of NTrajectories empty lists, 
     # which can then by passed on to the simulation routine
@@ -176,7 +178,7 @@ def Generate_Ensemble_of_LJ_NVT_MolecularDynamics_Trajectories(d,m,LBox,kT,NTraj
         if debug:
             print('.', end='', flush=True)
         (t_tr, x_tr, y_tr, vx_tr, vy_tr, 
-         uPot_tr, uKin_tr, pPot_tr, pKin_tr, 
+         uPot_tr, uKin_tr, pPot_tr, pKin_tr, pHyper_tr,
          local_list_of_starting_configurations[n]
         ) = Generate_LJ_NVT_MolecularDynamics_Trajectory(d,m,LBox,kT,run_time,
                                                          local_list_of_starting_configurations[n],
@@ -194,6 +196,7 @@ def Generate_Ensemble_of_LJ_NVT_MolecularDynamics_Trajectories(d,m,LBox,kT,NTraj
         uPot_tr_ens.append(uPot_tr)
         pKin_tr_ens.append(pKin_tr)
         pPot_tr_ens.append(pPot_tr)
+        pHyper_tr_ens.append(pHyper_tr)
     
     if debug:
         print("")
@@ -206,9 +209,9 @@ def Generate_Ensemble_of_LJ_NVT_MolecularDynamics_Trajectories(d,m,LBox,kT,NTraj
     uPot_tr_ens = np.array(uPot_tr_ens)
     pKin_tr_ens = np.array(pKin_tr_ens)
     pPot_tr_ens = np.array(pPot_tr_ens)
-    
+    pHyper_tr_ens = np.array (pHyper_tr_ens)
     return (t_tr_ens, x_tr_ens, y_tr_ens, vx_tr_ens, vy_tr_ens, 
-            uPot_tr_ens, uKin_tr_ens, pPot_tr_ens, pKin_tr_ens, 
+            uPot_tr_ens, uKin_tr_ens, pPot_tr_ens, pKin_tr_ens, pHyper_tr_ens,
             local_list_of_starting_configurations)
 
 #######Getting compressibilty from pressure fluctuations########
