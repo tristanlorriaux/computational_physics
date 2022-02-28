@@ -8,7 +8,7 @@ Exploring the behavior of 2d Lennard-Jones systems under different conditions wi
 * the calculation of the local density
 * routines for running individual and ensembles of MD simulations, sweeping parameter space and automatically including all available data sets into plots
 
-**ALL OF THE USEFUL FUNCTIONS ARE IN *library.py*, à importer avec :**
+**ALL OF THE USEFUL FUNCTIONS ARE IN *library.py*, IMPORT WITH :**
 
 `from library.py import *`
 
