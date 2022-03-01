@@ -9,6 +9,7 @@ Exploring the behavior of 2d Lennard-Jones systems under different conditions wi
 * the calculation of the particle mean-square displacements and diffusion constants
 * the calculation of the local density
 * routines for running individual and ensembles of MD simulations, sweeping parameter space and automatically including all available data sets into plots
+![Capture d’écran 2022-03-01 141152](https://user-images.githubusercontent.com/57456860/156175157-37744dcb-bf51-4cd9-8545-ce558d4a0178.png)
 
 ## How to run our codes : 
 
