@@ -23,9 +23,13 @@ Download all of the repository, execute one of the Jupyter `main_{}.py` of your 
 
 ## How the project is constructed : 
 
-Each part explore one of the aspect of the phase transition : 
+Each part explore one of the aspect of the phase transition with more or less success : 
 
 * Compressibility
 * Diffusion and Mean Square Dispaclements
 * Isotherms
 * Local density
+
+## How we worked on it : 
+
+Two students have worked on it : Loic Malgrey and Tristan Lorriaux; Loic focuses on MSD/Diffusion and Isotherms, while Tristan focuses on Compressibility and Local Density. Both also worked on the other side of their tasks, to complete Jupyters with observations.
