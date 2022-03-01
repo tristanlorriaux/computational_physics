@@ -32,4 +32,4 @@ Each part explore one of the aspect of the phase transition with more or less su
 
 ## How we worked on it : 
 
-Two students have worked on it : Loic Malgrey and Tristan Lorriaux; Loic focuses on MSD/Diffusion and Isotherms, while Tristan focuses on Compressibility and Local Density. Both also worked on the other side of their tasks, to complete Jupyters with observations.
+Two students have worked on it : Loic Malgrey and Tristan Lorriaux; Loic focused on MSD/Diffusion and Isotherms, while Tristan focused on Compressibility and Local Density. Both also worked on the other side of their tasks, to complete Jupyters with observations.
